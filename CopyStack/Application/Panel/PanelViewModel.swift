@@ -14,7 +14,7 @@ final class PanelViewModel: ObservableObject {
         let all = ClipboardManager.shared.items
         let byCategory = selectedCategory == "All"
             ? all
-            : all.filter { $0.type.filterCategory == selectedCategory }
+        : all.filter { $0.type.filterCategory == selectedCategory }
         guard !searchText.isEmpty else { return byCategory }
         return byCategory.filter { $0.searchableText.localizedCaseInsensitiveContains(searchText) }
     }

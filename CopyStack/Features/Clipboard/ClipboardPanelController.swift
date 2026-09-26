@@ -33,16 +33,10 @@ final class ClipboardPanelController {
 
     func show() {
         previousApp = NSWorkspace.shared.frontmostApplication
-
-        if panel == nil {
-            makePanel()
-        }
-
+        if panel == nil { makePanel() }
         positionOnScreen()
-
         panel?.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
-
         installKeyMonitor()
     }
 
@@ -55,11 +49,9 @@ final class ClipboardPanelController {
         let contentView = ClipboardPanelBottomView(
             onClose: { [weak self] in self?.close() }
         )
-
         panelView = contentView
 
         let hosting = NSHostingView(rootView: contentView)
-
         let p = ClipboardPanel(
             contentRect: NSRect(
                 x: 0,
@@ -91,7 +83,6 @@ final class ClipboardPanelController {
         panel = p
     }
 
-    /// Dynamically target screen containing mouse cursor or frontmost main screen
     private var targetScreen: NSScreen? {
         return NSScreen.screens.first ?? NSScreen.main
     }
@@ -177,15 +168,12 @@ final class ClipboardPanelController {
 
     private func installKeyMonitor() {
         keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event -> NSEvent? in
-
             guard let self, let panel = self.panel, panel.isVisible else {
                 return event
             }
-
             let vm = PanelViewModel.shared
 
             switch event.keyCode {
-
             case 126: vm.moveSelection(by: -1); return nil
             case 125: vm.moveSelection(by: 1); return nil
             case 123: vm.cycleCategory(by: -1); return nil

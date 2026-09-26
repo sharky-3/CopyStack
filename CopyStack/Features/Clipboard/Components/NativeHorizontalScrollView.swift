@@ -3,24 +3,21 @@ import AppKit
 
 struct NativeHorizontalScrollView<Content: View>: NSViewRepresentable {
     let content: () -> Content
-    var selectedIndex: Int
     var itemWidth: CGFloat
     var spacing: CGFloat
 
     init(
-        selectedIndex: Int = 0,
         itemWidth: CGFloat = 180,
         spacing: CGFloat = 10,
         @ViewBuilder content: @escaping () -> Content
     ) {
-        self.selectedIndex = selectedIndex
         self.itemWidth = itemWidth
         self.spacing = spacing
         self.content = content
     }
     
-    func makeNSView(context: Context) -> SmoothWheelScrollView {
-        let scrollView = SmoothWheelScrollView()
+    func makeNSView(context: Context) -> EdgeHoverScrollView {
+        let scrollView = EdgeHoverScrollView()
         scrollView.hasHorizontalScroller = false
         scrollView.hasVerticalScroller = false
         scrollView.drawsBackground = false
@@ -43,75 +40,135 @@ struct NativeHorizontalScrollView<Content: View>: NSViewRepresentable {
         return scrollView
     }
 
-    func updateNSView(_ nsView: SmoothWheelScrollView, context: Context) {
+    func updateNSView(_ nsView: EdgeHoverScrollView, context: Context) {
         if let documentView = nsView.documentView,
            let hostingView = documentView.subviews.first as? NSHostingView<Content> {
             hostingView.rootView = content()
             hostingView.invalidateIntrinsicContentSize()
             documentView.frame = NSRect(origin: .zero, size: hostingView.intrinsicContentSize)
         }
-
-        DispatchQueue.main.async {
-            nsView.scrollToItem(at: selectedIndex, itemWidth: itemWidth, spacing: spacing)
-        }
     }
 }
 
-class SmoothWheelScrollView: NSScrollView {
+class EdgeHoverScrollView: NSScrollView {
+    private var displayLink: CADisplayLink?
+    private var scrollSpeed: CGFloat = 0
+    private var trackingArea: NSTrackingArea?
+
+    override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        setupTrackingArea()
+        updateDisplayLinkState()
+    }
+
+    override func updateTrackingAreas() {
+        super.updateTrackingAreas()
+        setupTrackingArea()
+    }
+
+    private func setupTrackingArea() {
+        if let existing = trackingArea {
+            removeTrackingArea(existing)
+        }
+        let area = NSTrackingArea(
+            rect: bounds,
+            options: [.mouseMoved, .mouseEnteredAndExited, .activeInKeyWindow],
+            owner: self,
+            userInfo: nil
+        )
+        addTrackingArea(area)
+        trackingArea = area
+    }
+
+    override func mouseMoved(with event: NSEvent) {
+        let location = convert(event.locationInWindow, from: nil)
+        let edgeZoneWidth: CGFloat = 120.0
+        let maxEdgeSpeed: CGFloat = 38.0
+        
+        if location.x < edgeZoneWidth {
+            let intensity = (edgeZoneWidth - location.x) / edgeZoneWidth
+            scrollSpeed = -maxEdgeSpeed * intensity
+        } else if location.x > bounds.width - edgeZoneWidth {
+            let intensity = (location.x - (bounds.width - edgeZoneWidth)) / edgeZoneWidth
+            scrollSpeed = maxEdgeSpeed * intensity
+        } else {
+            scrollSpeed = 0
+        }
+        
+        updateDisplayLinkState()
+    }
+
+    override func mouseExited(with event: NSEvent) {
+        scrollSpeed = 0
+        updateDisplayLinkState()
+    }
 
     override func scrollWheel(with event: NSEvent) {
-        if abs(event.scrollingDeltaX) > abs(event.scrollingDeltaY) {
-            super.scrollWheel(with: event)
-            return
-        }
-
-        let delta = event.scrollingDeltaY != 0 ? event.scrollingDeltaY : event.deltaY * 10
-        let clipView = contentView // Direct access without casting
-
-        var newOrigin = clipView.bounds.origin
-        newOrigin.x -= delta * 2.5
+        let deltaX = event.scrollingDeltaX != 0 ? event.scrollingDeltaX : event.deltaY * 10
+        let deltaY = event.scrollingDeltaY != 0 ? event.scrollingDeltaY : event.deltaY * 10
+        
+        let effectiveDelta = abs(deltaX) > abs(deltaY) ? deltaX : deltaY
+        
+        var newOrigin = contentView.bounds.origin
+        newOrigin.x -= effectiveDelta * 4.5
 
         if let docView = documentView {
-            let maxX = docView.bounds.width - clipView.bounds.width
+            let maxX = docView.bounds.width - contentView.bounds.width
             newOrigin.x = max(0, min(newOrigin.x, max(0, maxX)))
         }
 
-        clipView.scroll(to: newOrigin)
-        reflectScrolledClipView(clipView)
+        contentView.scroll(to: newOrigin)
+        reflectScrolledClipView(contentView)
     }
 
-    func scrollToItem(at index: Int, itemWidth: CGFloat, spacing: CGFloat) {
-        guard let docView = documentView else { return }
+    // MARK: - Modern macOS 15+ DisplayLink Setup
 
-        let clipView = contentView
-
-        let itemLeft = 20 + CGFloat(index) * (itemWidth + spacing)
-        let itemRight = itemLeft + itemWidth
-
-        let visibleLeft = clipView.bounds.origin.x
-        let visibleWidth = clipView.bounds.width
-        let visibleRight = visibleLeft + visibleWidth
-
-        let maxScrollX = max(0, docView.bounds.width - visibleWidth)
-
-        var newX = visibleLeft
-
-        if itemRight > visibleRight {
-            newX = itemRight - visibleWidth + 20
-        }
-        else if itemLeft < visibleLeft {
-            newX = max(0, itemLeft - 20)
-        }
-
-        newX = max(0, min(newX, maxScrollX))
-
-        if newX != visibleLeft {
-            NSAnimationContext.runAnimationGroup { context in
-                context.duration = 0.2
-                context.timingFunction = CAMediaTimingFunction(name: .easeOut)
-                clipView.animator().setBoundsOrigin(NSPoint(x: newX, y: 0))
+    private func updateDisplayLinkState() {
+        if #available(macOS 14.0, *) {
+            if scrollSpeed != 0 {
+                if displayLink == nil {
+                    // Modern NSView CADisplayLink factory method
+                    displayLink = self.displayLink(target: self, selector: #selector(stepEdgeScrollModern(_:)))
+                    displayLink?.add(to: .main, forMode: .common)
+                }
+                displayLink?.isPaused = false
+            } else {
+                displayLink?.isPaused = true
             }
-            reflectScrolledClipView(clipView)
+        } else {
+            // Fallback for macOS 13 or earlier if deployment target requires legacy support
+            stepEdgeScrollLegacy()
         }
+    }
+
+    @objc private func stepEdgeScrollModern(_ link: CADisplayLink) {
+        performScrollStep()
+    }
+
+    private func stepEdgeScrollLegacy() {
+        guard scrollSpeed != 0 else { return }
+        performScrollStep()
+        
+        // Loop using main thread async if on older macOS versions
+        DispatchQueue.main.asyncAfter(deadline: .now() + (1.0 / 60.0)) { [weak self] in
+            self?.stepEdgeScrollLegacy()
+        }
+    }
+
+    private func performScrollStep() {
+        guard scrollSpeed != 0, let docView = documentView else { return }
+
+        var newOrigin = contentView.bounds.origin
+        newOrigin.x += scrollSpeed
+
+        let maxX = docView.bounds.width - contentView.bounds.width
+        newOrigin.x = max(0, min(newOrigin.x, max(0, maxX)))
+
+        contentView.scroll(to: newOrigin)
+        reflectScrolledClipView(contentView)
+    }
+
+    deinit {
+        displayLink?.invalidate()
     }
 }

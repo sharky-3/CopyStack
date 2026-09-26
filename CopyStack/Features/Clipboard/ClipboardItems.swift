@@ -45,13 +45,27 @@ struct ClipboardItem: Identifiable, Equatable {
             return .color
         }
 
+        if let url = URL(string: trimmed), let scheme = url.scheme?.lowercased(), ["http", "https", "ftp", "mailto"].contains(scheme) {
+            return .link
+        }
+
+        let urlRegex = "^(https?://)?([a-zA-Z0-9\\-]+\\.)+[a-zA-Z]{2,}(/.*)?$"
+        if trimmed.range(of: urlRegex, options: [.regularExpression, .caseInsensitive]) != nil {
+            return .link
+        }
+
         let types: NSTextCheckingResult.CheckingType = [.link, .phoneNumber]
         if let detector = try? NSDataDetector(types: types.rawValue) {
-            let range = NSRange(trimmed.startIndex..., in: trimmed)
-            if let match = detector.firstMatch(in: trimmed, options: [], range: range),
-               match.range.length == (trimmed as NSString).length {
-                if match.resultType == .link { return .link }
-                if match.resultType == .phoneNumber { return .phone }
+            let nsString = trimmed as NSString
+            let range = NSRange(location: 0, length: nsString.length)
+            
+            if let match = detector.firstMatch(in: trimmed, options: [], range: range) {
+                if match.resultType == .link {
+                    return .link
+                }
+                if match.resultType == .phoneNumber && match.range.length == nsString.length {
+                    return .phone
+                }
             }
         }
 
@@ -62,17 +76,29 @@ struct ClipboardItem: Identifiable, Equatable {
         return .text
     }
 
+    var linkDomain: String? {
+        guard type == .link, let text = text?.trimmingCharacters(in: .whitespacesAndNewlines) else {
+            return nil
+        }
+        let urlString = text.lowercased().hasPrefix("http") ? text : "https://\(text)"
+        return URL(string: urlString)?.host ?? text
+    }
+
     var preview: String {
         switch type {
         case .image:
-            return "Image"
+            return "Photo"
         case .file:
             guard let urls = fileURLs, !urls.isEmpty else { return "File" }
             if urls.count == 1 { return urls[0].lastPathComponent }
             return "\(urls.count) files"
         default:
             guard let text else { return "" }
-            return text.count > 80 ? String(text.prefix(80)) + "…" : text
+            return text
+                .components(separatedBy: .newlines)
+                .map { $0.trimmingCharacters(in: .whitespaces) }
+                .filter { !$0.isEmpty }
+                .joined(separator: " ")
         }
     }
 

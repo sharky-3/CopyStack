@@ -42,11 +42,11 @@ final class ClipboardManager: ObservableObject {
         guard !isPasting else { return }
 
         let sourceApp = NSWorkspace.shared.frontmostApplication?.localizedName
+
         if let urls = pb.readObjects(
             forClasses: [NSURL.self],
             options: [.urlReadingFileURLsOnly: true]
-        ) as? [URL],
-           !urls.isEmpty {
+        ) as? [URL], !urls.isEmpty {
             let item = ClipboardItem(
                 type: .file,
                 date: Date(),
@@ -55,6 +55,7 @@ final class ClipboardManager: ObservableObject {
                 imageData: nil,
                 fileURLs: urls
             )
+
             insertOrBump(item) { $0.fileURLs == urls }
             return
         }
@@ -69,13 +70,13 @@ final class ClipboardManager: ObservableObject {
                 imageData: imageData,
                 fileURLs: nil
             )
+            
             insertOrBump(item) { $0.imageData == imageData }
             return
         }
 
-        guard let string = pb.string(forType: .string), !string.trimmingCharacters(
-            in: .whitespacesAndNewlines
-        ).isEmpty
+        guard let string = pb.string(forType: .string),
+              !string.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         else { return }
 
         let type = ClipboardItem.detectType(for: string)
@@ -92,6 +93,7 @@ final class ClipboardManager: ObservableObject {
             $0.text == string
             && $0.type != .file
             && $0.type != .image
+            && $0.type != .link
         }
     }
 
@@ -107,7 +109,7 @@ final class ClipboardManager: ObservableObject {
 
         items.insert(item, at: 0)
         if items.count > maxItems {
-            items.removeLast( items.count - maxItems )
+            items.removeLast(items.count - maxItems)
         }
     }
 

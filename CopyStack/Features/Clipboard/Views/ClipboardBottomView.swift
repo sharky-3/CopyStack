@@ -5,6 +5,8 @@ struct ClipboardPanelBottomView: View {
     @ObservedObject private var vm = PanelViewModel.shared
     @ObservedObject private var manager = ClipboardManager.shared
     
+    @State private var hoveredIndex: Int? = nil
+    
     var onClose: () -> Void
     var panelWidth: CGFloat
     var panelHeight: CGFloat
@@ -37,11 +39,7 @@ struct ClipboardPanelBottomView: View {
             VStack(spacing: 0) {
                 header
                 Divider()
-                //categoryBar
-                //Divider().opacity(0.15)
                 gridContent
-                //Divider().opacity(0.15)
-                //footer
             }
         }
         .frame(width: panelWidth)
@@ -83,38 +81,8 @@ struct ClipboardPanelBottomView: View {
         .padding(16)
     }
 
-    private var categoryBar: some View {
-        HStack(spacing: 8) {
-            ForEach(Array(vm.categories.enumerated()), id: \.element) { index, category in
-                Text(category)
-                    .font(.system(size: 13, weight: .medium, design: .rounded))
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 5)
-                    .background(
-                        Capsule().fill(
-                            vm.selectedCategory == category
-                            ? .white.opacity(0.9)
-                            : .white.opacity(0.08)
-                        )
-                    )
-                    .foregroundStyle(
-                        vm.selectedCategory == category ? .black : .white.opacity(0.8)
-                    )
-                    .onTapGesture {
-                        vm.selectedCategory = category
-                        vm.selectedIndex = 0
-                    }
-                    .revealUp(delay: 0.18 + Double(index) * 0.04)
-            }
-            Spacer()
-        }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 8)
-    }
-
     private var gridContent: some View {
         NativeHorizontalScrollView(
-            selectedIndex: vm.selectedIndex,
             itemWidth: cardWidth,
             spacing: itemSpacing
         ) {
@@ -122,7 +90,6 @@ struct ClipboardPanelBottomView: View {
                 ForEach(Array(vm.filteredItems.enumerated()), id: \.element.id) { index, item in
                     card(for: item, index: index)
                         .onTapGesture {
-                            vm.selectedIndex = index
                             ClipboardManager.shared.paste(item)
                         }
                 }
@@ -142,22 +109,33 @@ struct ClipboardPanelBottomView: View {
     }
 
     private func card(for item: ClipboardItem, index: Int) -> some View {
-        let isSelected = index == vm.selectedIndex
-        let shouldShowMediaIcon = (item.type == .file || item.type == .image || item.type == .color)
-
+        let shouldShowMediaIcon = (item.type == .file || item.type == .image || item.type == .color || item.type == .link)
+        let isHovered = hoveredIndex == index
+        
         return VStack(alignment: .center, spacing: 6) {
+            
             if shouldShowMediaIcon {
                 iconView(for: item, size: 150)
-                    .rotationEffect(Angle(degrees: isSelected ? 5 : 0))
             }
-            Text(item.preview)
-                .font(.system(size: 15, weight: .medium, design: .rounded))
-                .foregroundStyle(.white)
-                .multilineTextAlignment(.center)
-                .lineLimit(2)
-                .truncationMode(.tail)
-                .frame(maxWidth: .infinity, alignment: .center)
-
+            
+            if item.type == .text {
+                Text(item.preview)
+                    .font(.system(size: 12, weight: .medium, design: .rounded))
+                    .foregroundStyle(.white)
+                    .multilineTextAlignment(.leading)
+                    .lineLimit(9)
+                    .truncationMode(.tail)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            } else {
+                Text(item.preview)
+                    .font(.system(size: 15, weight: .medium, design: .rounded))
+                    .foregroundStyle(.white)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(2)
+                    .truncationMode(.tail)
+                    .frame(maxWidth: .infinity, alignment: .center)
+            }
+            
             Text("\(item.sourceApp ?? "Unknown") · \(item.date.formatted(date: .omitted, time: .shortened))")
                 .font(.system(size: 9, weight: .medium, design: .rounded))
                 .foregroundStyle(.white)
@@ -167,26 +145,10 @@ struct ClipboardPanelBottomView: View {
         .padding(10)
         .frame(width: cardWidth, height: rowItemHeight, alignment: .center)
         .background(.clear)
-        .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isSelected)
-        .onHover { isHovered in
-            if isHovered {
-                vm.selectedIndex = index
-            }
-        }
-    }
-
-    @ViewBuilder
-    private func shortcutBadge(index: Int, isSelected: Bool) -> some View {
-        if index < 9 {
-            Text("⌘\(index + 1)")
-                .font(.system(size: 9, weight: .bold, design: .monospaced))
-                .foregroundStyle(isSelected ? .black.opacity(0.6) : .white.opacity(0.4))
-                .padding(.horizontal, 4)
-                .padding(.vertical, 2)
-                .background(
-                    RoundedRectangle(cornerRadius: 4)
-                        .fill(isSelected ? .black.opacity(0.1) : .white.opacity(0.1))
-                )
+        .scaleEffect(isHovered ? 1.05 : 1.0)
+        .animation(.spring(response: 0.25, dampingFraction: 0.7), value: isHovered)
+        .onHover { hovering in
+            hoveredIndex = hovering ? index : nil
         }
     }
 
@@ -228,6 +190,9 @@ struct ClipboardPanelBottomView: View {
             } else {
                 placeholderIcon(item, size: size)
             }
+            
+        case .link:
+            placeholderIcon(item, size: size)
 
         default:
             EmptyView()
@@ -245,37 +210,6 @@ struct ClipboardPanelBottomView: View {
                     .foregroundStyle(.white.opacity(0.8))
             )
     }
-
-    private var footer: some View {
-        HStack(spacing: 16) {
-            hint("← → ↑ ↓", "Navigate", delay: 0.5)
-            hint("↩", "Paste", delay: 0.58)
-            hint("⌘P", "Pin", delay: 0.62)
-            hint("⌘⌫", "Delete", delay: 0.66)
-
-            Spacer()
-
-            hint("esc", "Close", delay: 0.70)
-        }
-        .font(.system(size: 11, weight: .medium, design: .rounded))
-        .foregroundStyle(.white.opacity(0.6))
-        .padding(.horizontal, 20)
-        .padding(.vertical, 10)
-    }
-
-    private func hint(_ key: String, _ label: String, delay: Double) -> some View {
-        HStack(spacing: 4) {
-            Text(key)
-                .padding(.horizontal, 5)
-                .padding(.vertical, 2)
-                .background(
-                    RoundedRectangle(cornerRadius: 4)
-                        .fill(.white.opacity(0.12))
-                )
-                .revealPop(delay: delay)
-
-            Text(label)
-                .revealUp(delay: delay + 0.025)
-        }
-    }
 }
+
+
