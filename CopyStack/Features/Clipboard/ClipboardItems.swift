@@ -27,6 +27,13 @@ enum ClipboardItemType {
     }
 }
 
+extension URL {
+    var isImageFile: Bool {
+        let imageExtensions: Set<String> = ["png", "jpg", "jpeg", "gif", "heic", "heif", "tiff", "tif", "bmp", "webp"]
+        return imageExtensions.contains(pathExtension.lowercased())
+    }
+}
+
 struct ClipboardItem: Identifiable, Equatable {
     let id = UUID()
     let type: ClipboardItemType

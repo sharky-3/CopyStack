@@ -173,8 +173,6 @@ struct ClipboardPanelBottomView: View {
         case .image:
             if let data = item.imageData, let nsImage = NSImage(data: data) {
                 Image(nsImage: nsImage)
-                    .resizable()
-                    .scaledToFill()
                     .frame(width: size, height: size)
                     .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
             } else {
@@ -183,14 +181,21 @@ struct ClipboardPanelBottomView: View {
 
         case .file:
             if let url = item.fileURLs?.first {
-                Image(nsImage: NSWorkspace.shared.icon(forFile: url.path))
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: size, height: size)
+                if url.isImageFile, let nsImage = NSImage(contentsOf: url) {
+                    Image(nsImage: nsImage)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: size, height: size)
+                        .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
+                } else {
+                    Image(nsImage: NSWorkspace.shared.icon(forFile: url.path))
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: size, height: size)
+                }
             } else {
                 placeholderIcon(item, size: size)
             }
-            
         case .link:
             placeholderIcon(item, size: size)
 
