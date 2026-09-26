@@ -22,7 +22,7 @@ final class StatusBarController: NSObject {
     }
 
     private func updateIcon(count: Int) {
-        statusItem.button?.image = Self.badgeImage(count: min(count, 9))
+        statusItem.button?.image = Self.badgeImage(count: min(count, 20))
     }
 
     private static func badgeImage(count: Int) -> NSImage {
