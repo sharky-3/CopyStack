@@ -19,7 +19,7 @@ struct ClipboardPanelBottomView: View {
     
     init(
         panelWidth: CGFloat = NSScreen.screens.first?.visibleFrame.width ?? 720,
-        panelHeight: CGFloat = 350,
+        panelHeight: CGFloat = 300,
         position: PanelPosition = .bottom,
         edgePadding: CGFloat = 0,
         onClose: @escaping () -> Void
@@ -36,11 +36,12 @@ struct ClipboardPanelBottomView: View {
             VisualEffectBlur()
             VStack(spacing: 0) {
                 header
-                categoryBar
-                Divider().opacity(0.15)
+                Divider()
+                //categoryBar
+                //Divider().opacity(0.15)
                 gridContent
-                Divider().opacity(0.15)
-                footer
+                //Divider().opacity(0.15)
+                //footer
             }
         }
         .frame(width: panelWidth)
@@ -79,9 +80,7 @@ struct ClipboardPanelBottomView: View {
                 .background(Capsule().fill(.white.opacity(0.1)))
                 .revealPop(delay: 0.15)
         }
-        .padding(.horizontal, 20)
-        .padding(.top, 14)
-        .padding(.bottom, 6)
+        .padding(16)
     }
 
     private var categoryBar: some View {
@@ -132,6 +131,7 @@ struct ClipboardPanelBottomView: View {
             .padding(.vertical, 10)
         }
         .frame(height: calculatedGridHeight)
+        .padding(.vertical, 16)
         .overlay {
             if vm.filteredItems.isEmpty {
                 Text("No clips yet — copy something with ⌘C")
@@ -145,39 +145,29 @@ struct ClipboardPanelBottomView: View {
         let isSelected = index == vm.selectedIndex
         let shouldShowMediaIcon = (item.type == .file || item.type == .image || item.type == .color)
 
-        return VStack(alignment: .leading, spacing: 6) {
-            HStack(alignment: .top) {
-                if shouldShowMediaIcon {
-                    iconView(for: item, size: 56)
-                }
-                Spacer()
-                shortcutBadge(index: index, isSelected: isSelected)
+        return VStack(alignment: .center, spacing: 6) {
+            if shouldShowMediaIcon {
+                iconView(for: item, size: 150)
+                    .rotationEffect(Angle(degrees: isSelected ? 5 : 0))
             }
-
             Text(item.preview)
-                .font(.system(size: 13, weight: .medium, design: .rounded))
-                .foregroundStyle(isSelected ? .black : .white)
-                .lineLimit(3)
-                .multilineTextAlignment(.leading)
-
-            Spacer(minLength: 0)
+                .font(.system(size: 15, weight: .medium, design: .rounded))
+                .foregroundStyle(.white)
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
+                .truncationMode(.tail)
+                .frame(maxWidth: .infinity, alignment: .center)
 
             Text("\(item.sourceApp ?? "Unknown") · \(item.date.formatted(date: .omitted, time: .shortened))")
                 .font(.system(size: 9, weight: .medium, design: .rounded))
-                .foregroundStyle(isSelected ? .black.opacity(0.6) : .white.opacity(0.4))
+                .foregroundStyle(.white)
                 .lineLimit(1)
+                .frame(maxWidth: .infinity, alignment: .center)
         }
         .padding(10)
-        .frame(width: cardWidth, height: rowItemHeight)
-        .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(isSelected ? Color.white : Color.white.opacity(0.07))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .stroke(isSelected ? Color.white : Color.white.opacity(0.1), lineWidth: 1)
-        )
-        .shadow(color: isSelected ? .black.opacity(0.25) : .clear, radius: 8, x: 0, y: 4)
+        .frame(width: cardWidth, height: rowItemHeight, alignment: .center)
+        .background(.clear)
+        .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isSelected)
         .onHover { isHovered in
             if isHovered {
                 vm.selectedIndex = index
