@@ -71,6 +71,10 @@ final class StatusBarController: NSObject {
         settingsItem.target = self
         menu.addItem(settingsItem)
 
+        let replayItem = NSMenuItem(title: "Replay Onboarding…", action: #selector(replayOnboarding), keyEquivalent: "")
+        replayItem.target = self
+        menu.addItem(replayItem)
+
         let updateItem = NSMenuItem(title: "Check for Updates…", action: #selector(checkForUpdates), keyEquivalent: "")
         updateItem.target = self
         menu.addItem(updateItem)
@@ -99,6 +103,10 @@ final class StatusBarController: NSObject {
 
     @objc private func openSettings() {
         SettingsWindowController.shared.show()
+    }
+
+    @objc private func replayOnboarding() {
+        OnboardingWindowController.shared.show()
     }
 
     @objc private func checkForUpdates() {
