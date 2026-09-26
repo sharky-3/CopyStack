@@ -8,48 +8,49 @@ struct ClipboardPanelView: View {
     var body: some View {
         ZStack {
             VisualEffectBlur()
-            LinearGradient(colors: [.purple.opacity(0.55), .blue.opacity(0.55)],
-                           startPoint: .topLeading, endPoint: .bottomTrailing)
-                .blendMode(.overlay)
-
+            
             VStack(spacing: 0) {
                 header
-                Divider().opacity(0.2)
                 categoryBar
-                Divider().opacity(0.15)
+                Divider()
                 list
-                Divider().opacity(0.2)
+                Divider()
                 footer
             }
         }
         .frame(width: 720, height: 560)
-        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 18).stroke(.white.opacity(0.15), lineWidth: 1))
+        .clipShape(RoundedRectangle(cornerRadius: 30, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 30).stroke(.white.opacity(0.15), lineWidth: 1))
         .onAppear { vm.reset() }
     }
 
     private var header: some View {
-        HStack(spacing: 10) {
-            Image(systemName: "magnifyingglass").foregroundStyle(.white.opacity(0.7))
+        HStack(alignment: .center, spacing: 10) {
+            Image(systemName: "magnifyingglass")
+                .font(.system(size: 20, weight: .light, design: .rounded))
+                .foregroundStyle(.white.opacity(0.7))
             TextField("Type to search...", text: $vm.searchText)
+                .font(.system(size: 17, weight: .light, design: .rounded))
                 .textFieldStyle(.plain)
                 .foregroundStyle(.white)
+                .opacity(0.7)
             Spacer()
-            Text("\(vm.filteredItems.count) clips")
+            Text("\(vm.filteredItems.count)")
                 .foregroundStyle(.white.opacity(0.6))
-                .font(.callout)
+                .font(.system(size: 13, weight: .light, design: .rounded))
         }
         .padding(.horizontal, 20)
-        .padding(.vertical, 16)
+        .padding(.top, 16)
     }
 
     private var categoryBar: some View {
         HStack(spacing: 8) {
             ForEach(vm.categories, id: \.self) { category in
                 Text(category)
-                    .font(.subheadline.weight(.medium))
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 6)
+                    .font(.system(size: 15, weight: .light, design: .rounded))
+                    .padding(.horizontal, 5)
+                    .padding(.vertical, 3)
+                    .frame(minWidth: 75)
                     .background(
                         Capsule().fill(vm.selectedCategory == category ? .white.opacity(0.9) : .white.opacity(0.08))
                     )
@@ -69,10 +70,10 @@ struct ClipboardPanelView: View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 4) {
                 Text("Today")
-                    .font(.caption.weight(.semibold))
+                    .font(.system(size: 15, weight: .light, design: .rounded))
                     .foregroundStyle(.white.opacity(0.5))
                     .padding(.horizontal, 20)
-                    .padding(.top, 8)
+                    .padding(.top, 15)
 
                 ForEach(Array(vm.filteredItems.enumerated()), id: \.element.id) { index, item in
                     row(for: item, index: index)
@@ -84,6 +85,7 @@ struct ClipboardPanelView: View {
 
                 if vm.filteredItems.isEmpty {
                     Text("No clips yet — copy something with ⌘C")
+                        .font(.system(size: 15, weight: .light, design: .rounded))
                         .foregroundStyle(.white.opacity(0.4))
                         .padding(.top, 40)
                         .frame(maxWidth: .infinity)
@@ -126,36 +128,68 @@ struct ClipboardPanelView: View {
 
     @ViewBuilder
     private func iconView(for item: ClipboardItem) -> some View {
-        if item.type == .color, let color = NSColor(hexString: item.content) {
-            RoundedRectangle(cornerRadius: 7).fill(Color(nsColor: color))
-        } else {
-            RoundedRectangle(cornerRadius: 7)
-                .fill(.white.opacity(0.08))
-                .overlay(Image(systemName: item.type.iconName).foregroundStyle(.white.opacity(0.7)))
+        switch item.type {
+        case .color:
+            if let text = item.text, let color = NSColor(hexString: text) {
+                RoundedRectangle(cornerRadius: 7).fill(Color(nsColor: color))
+            } else {
+                placeholderIcon(item)
+            }
+        case .image:
+            if let data = item.imageData, let nsImage = NSImage(data: data) {
+                Image(nsImage: nsImage)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 28, height: 28)
+                    .clipShape(RoundedRectangle(cornerRadius: 7))
+            } else {
+                placeholderIcon(item)
+            }
+        case .file:
+            if let url = item.fileURLs?.first {
+                Image(nsImage: NSWorkspace.shared.icon(forFile: url.path))
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 22, height: 22)
+            } else {
+                placeholderIcon(item)
+            }
+        default:
+            placeholderIcon(item)
         }
     }
-
+    
+    private func placeholderIcon(_ item: ClipboardItem) -> some View {
+        RoundedRectangle(cornerRadius: 7)
+            .fill(.white.opacity(0.08))
+            .overlay(Image(systemName: item.type.iconName).foregroundStyle(.white.opacity(0.7)))
+    }
+    
     private var footer: some View {
         HStack(spacing: 18) {
             hint("↑↓", "Navigate")
             hint("↔", "Category")
             hint("↩", "Paste")
             hint("⌘P", "Pin")
-            hint("⌫", "Delete")
+            hint("⌘⌫", "Delete")
             Spacer()
             hint("esc", "Close")
         }
-        .font(.caption)
+        .font(.system(size: 12, weight: .light, design: .rounded))
         .foregroundStyle(.white.opacity(0.6))
         .padding(.horizontal, 20)
         .padding(.vertical, 12)
     }
 
     private func hint(_ key: String, _ label: String) -> some View {
-        HStack(spacing: 4) {
+        HStack(spacing: 5) {
             Text(key).padding(.horizontal, 6).padding(.vertical, 2)
-                .background(RoundedRectangle(cornerRadius: 4).fill(.white.opacity(0.1)))
+                .background(RoundedRectangle(cornerRadius: 5).fill(.white.opacity(0.1)))
             Text(label)
         }
     }
+}
+
+#Preview {
+    ClipboardPanelView(onClose: {})
 }

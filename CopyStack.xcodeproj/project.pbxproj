@@ -6,8 +6,13 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		EC94A46E30680CFA002166C1 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = EC94A45A30680CFA002166C1 /* README.md */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		EC94A43C30680CED002166C1 /* CopyStack.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CopyStack.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		EC94A45A30680CFA002166C1 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -34,6 +39,7 @@
 			children = (
 				EC94A43E30680CED002166C1 /* CopyStack */,
 				EC94A43D30680CED002166C1 /* Products */,
+				EC94A45A30680CFA002166C1 /* README.md */,
 			);
 			sourceTree = "<group>";
 		};
@@ -109,6 +115,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EC94A46E30680CFA002166C1 /* README.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

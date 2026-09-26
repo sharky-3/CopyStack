@@ -8,7 +8,7 @@ final class PanelViewModel: ObservableObject {
     @Published var selectedCategory: String = "All"
     @Published var selectedIndex: Int = 0
 
-    let categories = ["All", "Text", "Links", "Colors"]
+    let categories = ["All", "Text", "Links", "Colors", "Images", "Files"]
 
     var filteredItems: [ClipboardItem] {
         let all = ClipboardManager.shared.items
@@ -16,7 +16,7 @@ final class PanelViewModel: ObservableObject {
             ? all
             : all.filter { $0.type.filterCategory == selectedCategory }
         guard !searchText.isEmpty else { return byCategory }
-        return byCategory.filter { $0.content.localizedCaseInsensitiveContains(searchText) }
+        return byCategory.filter { $0.searchableText.localizedCaseInsensitiveContains(searchText) }
     }
 
     func reset() {
