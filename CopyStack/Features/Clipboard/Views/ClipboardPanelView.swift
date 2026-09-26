@@ -1,16 +1,34 @@
 import SwiftUI
 
 struct ClipboardPanelView: View {
-
     @ObservedObject private var vm = PanelViewModel.shared
     @ObservedObject private var manager = ClipboardManager.shared
-
+    
     var onClose: () -> Void
-
+    
+    var panelWidth: CGFloat
+    var panelHeight: CGFloat
+    
+    var position: PanelPosition = .center
+    var edgePadding: CGFloat = 0
+    
+    init(
+        panelWidth: CGFloat = 720,
+        panelHeight: CGFloat = 560,
+        position: PanelPosition = .center,
+        edgePadding: CGFloat = 0,
+        onClose: @escaping () -> Void
+    ) {
+        self.panelWidth = panelWidth
+        self.panelHeight = panelHeight
+        self.position = position
+        self.edgePadding = edgePadding
+        self.onClose = onClose
+    }
+    
     var body: some View {
         ZStack {
             VisualEffectBlur()
-
             VStack(spacing: 0) {
                 header
                 categoryBar
@@ -20,7 +38,10 @@ struct ClipboardPanelView: View {
                 footer
             }
         }
-        .frame(width: 720, height: 560)
+        .frame(
+            width: panelWidth,
+            height: panelHeight
+        )
         .clipShape(
             RoundedRectangle(cornerRadius: 30, style: .continuous)
         )

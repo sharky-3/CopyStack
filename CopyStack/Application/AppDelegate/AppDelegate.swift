@@ -8,6 +8,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         HotKeyManager.shared.start()
         PasteHelper.ensureAccessibilityPermission()
 
-        OnboardingWindowController.shared.show()
+        OnboardingWindowController.shared.showIfNeeded()
     }
 }
