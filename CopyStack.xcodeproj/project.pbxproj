@@ -8,11 +8,15 @@
 
 /* Begin PBXBuildFile section */
 		EC94A46E30680CFA002166C1 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = EC94A45A30680CFA002166C1 /* README.md */; };
+		EC94A4913069067F002166C1 /* copystack.rb in Resources */ = {isa = PBXBuildFile; fileRef = EC94A4903069067E002166C1 /* copystack.rb */; };
+		EC94A49330690691002166C1 /* install.sh in Resources */ = {isa = PBXBuildFile; fileRef = EC94A49230690691002166C1 /* install.sh */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		EC94A43C30680CED002166C1 /* CopyStack.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CopyStack.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		EC94A45A30680CFA002166C1 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		EC94A4903069067E002166C1 /* copystack.rb */ = {isa = PBXFileReference; lastKnownFileType = text.script.ruby; path = copystack.rb; sourceTree = "<group>"; };
+		EC94A49230690691002166C1 /* install.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = install.sh; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -37,6 +41,8 @@
 		EC94A43330680CED002166C1 = {
 			isa = PBXGroup;
 			children = (
+				EC94A49230690691002166C1 /* install.sh */,
+				EC94A4903069067E002166C1 /* copystack.rb */,
 				EC94A43E30680CED002166C1 /* CopyStack */,
 				EC94A43D30680CED002166C1 /* Products */,
 				EC94A45A30680CFA002166C1 /* README.md */,
@@ -116,6 +122,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				EC94A46E30680CFA002166C1 /* README.md in Resources */,
+				EC94A4913069067F002166C1 /* copystack.rb in Resources */,
+				EC94A49330690691002166C1 /* install.sh in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
