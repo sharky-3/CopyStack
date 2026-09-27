@@ -39,8 +39,8 @@ struct OnboardingView: View {
     private var welcomePage: some View {
         VStack(spacing: 20) {
             VStack(spacing: 8) {
-                Text("Welcome to CopyCat").font(.title.bold())
-                Text("Copy several things, then choose what to paste. CopyCat keeps your latest copies in a fast, private stack — everything stays on your Mac.")
+                Text("Welcome to CopyStack").font(.title.bold())
+                Text("Copy several things, then choose what to paste. CopyStack keeps your latest copies in a fast, private stack — everything stays on your Mac.")
                     .multilineTextAlignment(.center)
                     .foregroundStyle(.secondary)
                     .padding(.horizontal, 40)
