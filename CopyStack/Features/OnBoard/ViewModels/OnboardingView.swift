@@ -64,13 +64,13 @@ struct OnboardingView: View {
         VStack(spacing: 20) {
             VStack(spacing: 8) {
                 Text("You're All Set").font(.title.bold())
-                Text("CopyCat lives in your menu bar. Copy freely — press ⌘⇧V whenever you're ready to paste.")
+                Text("CopyStack lives in your menu bar. Copy freely — press ⌘⇧V whenever you're ready to paste.")
                     .multilineTextAlignment(.center)
                     .foregroundStyle(.secondary)
                     .padding(.horizontal, 40)
             }
 
-            Toggle("Launch CopyCat at login", isOn: $launchAtLogin)
+            Toggle("Launch CopyStack at login", isOn: $launchAtLogin)
                 .toggleStyle(.checkbox)
 
             HStack(spacing: 16) {

@@ -10,7 +10,7 @@ final class SettingsWindowController {
             let vc = NSHostingController(rootView: Text("Settings coming soon").padding(40))
             let w = NSWindow(contentViewController: vc)
             w.styleMask = [.titled, .closable]
-            w.title = "CopyCat Settings"
+            w.title = "CopyStack Settings"
             w.isReleasedWhenClosed = false
             window = w
         }

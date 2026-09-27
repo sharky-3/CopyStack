@@ -81,7 +81,7 @@ final class StatusBarController: NSObject {
 
         menu.addItem(.separator())
 
-        let quitItem = NSMenuItem(title: "Quit CopyCat", action: #selector(quit), keyEquivalent: "q")
+        let quitItem = NSMenuItem(title: "Quit CopyStack", action: #selector(quit), keyEquivalent: "q")
         quitItem.target = self
         menu.addItem(quitItem)
 

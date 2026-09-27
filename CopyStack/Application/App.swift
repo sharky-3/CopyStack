@@ -1,7 +1,7 @@
 import SwiftUI
 
 @main
-struct CopyCatApp: App {
+struct CopyStackApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
     var body: some Scene {
