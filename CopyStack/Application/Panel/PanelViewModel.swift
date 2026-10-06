@@ -8,7 +8,7 @@ final class PanelViewModel: ObservableObject {
     @Published var selectedCategory: String = "All"
     @Published var selectedIndex: Int = 0
 
-    let categories = ["All", "Text", "Links", "Colors", "Images", "Files"]
+    let categories = ["All", "Text", "Files", "Images", "Colors", "Links"]
 
     var filteredItems: [ClipboardItem] {
         let all = ClipboardManager.shared.items

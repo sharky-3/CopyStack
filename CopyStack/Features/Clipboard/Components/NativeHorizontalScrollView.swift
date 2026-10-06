@@ -120,9 +120,7 @@ class EdgeHoverScrollView: NSScrollView {
         contentView.scroll(to: newOrigin)
         reflectScrolledClipView(contentView)
     }
-
-    // MARK: - Modern macOS 15+ DisplayLink Setup
-
+    
     private func updateDisplayLinkState() {
         if #available(macOS 14.0, *) {
             if scrollSpeed != 0 {
@@ -136,7 +134,6 @@ class EdgeHoverScrollView: NSScrollView {
                 displayLink?.isPaused = true
             }
         } else {
-            // Fallback for macOS 13 or earlier if deployment target requires legacy support
             stepEdgeScrollLegacy()
         }
     }
@@ -149,7 +146,6 @@ class EdgeHoverScrollView: NSScrollView {
         guard scrollSpeed != 0 else { return }
         performScrollStep()
         
-        // Loop using main thread async if on older macOS versions
         DispatchQueue.main.asyncAfter(deadline: .now() + (1.0 / 60.0)) { [weak self] in
             self?.stepEdgeScrollLegacy()
         }
