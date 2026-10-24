@@ -12,6 +12,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         OnboardingWindowController.shared.showIfNeeded()
     }
 
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        SettingsWindowController.shared.show()
+        return true
+    }
+
     func applicationWillTerminate(_ notification: Notification) {
         ClipboardManager.shared.flush()
     }

@@ -70,6 +70,7 @@ final class AppSettings: ObservableObject {
         static let autoPaste = "autoPaste"
         static let sounds = "playSounds"
         static let menuBarCount = "showCountInMenuBar"
+        static let menuBarIcon = "showMenuBarIcon"
         static let ignoreConcealed = "ignoreConcealed"
         static let ignoredApps = "ignoredApps"
     }
@@ -133,6 +134,10 @@ final class AppSettings: ObservableObject {
         didSet { defaults.set(showCountInMenuBar, forKey: Key.menuBarCount) }
     }
 
+    @Published var showMenuBarIcon: Bool {
+        didSet { defaults.set(showMenuBarIcon, forKey: Key.menuBarIcon) }
+    }
+
     @Published var ignoreConcealed: Bool {
         didSet { defaults.set(ignoreConcealed, forKey: Key.ignoreConcealed) }
     }
@@ -160,6 +165,7 @@ final class AppSettings: ObservableObject {
         autoPaste = readBool(Key.autoPaste, true)
         playSounds = readBool(Key.sounds, false)
         showCountInMenuBar = readBool(Key.menuBarCount, true)
+        showMenuBarIcon = readBool(Key.menuBarIcon, true)
         ignoreConcealed = readBool(Key.ignoreConcealed, true)
         ignoredApps = store.stringArray(forKey: Key.ignoredApps) ?? []
     }
@@ -182,6 +188,7 @@ final class AppSettings: ObservableObject {
         autoPaste = true
         playSounds = false
         showCountInMenuBar = true
+        showMenuBarIcon = true
         ignoreConcealed = true
         ignoredApps = []
     }

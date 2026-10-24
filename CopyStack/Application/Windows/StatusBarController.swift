@@ -32,6 +32,11 @@ final class StatusBarController: NSObject {
             }
             .store(in: &bag)
 
+        AppSettings.shared.$showMenuBarIcon
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] visible in self?.statusItem.isVisible = visible }
+            .store(in: &bag)
+
         buildMenu(shortcut: AppSettings.shared.shortcut)
     }
 
