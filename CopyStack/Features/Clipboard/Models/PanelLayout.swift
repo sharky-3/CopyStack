@@ -4,6 +4,7 @@ enum PanelLayout {
     case strip
     case column
     case grid
+    case notch
 }
 
 enum PanelPosition: String, CaseIterable, Identifiable, Codable {
@@ -12,6 +13,7 @@ enum PanelPosition: String, CaseIterable, Identifiable, Codable {
     case bottom
     case right
     case center
+    case notch
 
     var id: String { rawValue }
 
@@ -22,6 +24,7 @@ enum PanelPosition: String, CaseIterable, Identifiable, Codable {
         case .bottom: return "Bottom"
         case .right: return "Right"
         case .center: return "Center"
+        case .notch: return "Notch"
         }
     }
 
@@ -32,6 +35,7 @@ enum PanelPosition: String, CaseIterable, Identifiable, Codable {
         case .bottom: return "rectangle.bottomthird.inset.filled"
         case .right: return "rectangle.trailingthird.inset.filled"
         case .center: return "rectangle.center.inset.filled"
+        case .notch: return "capsule.tophalf.filled"
         }
     }
 
@@ -40,12 +44,13 @@ enum PanelPosition: String, CaseIterable, Identifiable, Codable {
         case .top, .bottom: return .strip
         case .left, .right: return .column
         case .center: return .grid
+        case .notch: return .notch
         }
     }
 
     var anchor: UnitPoint {
         switch self {
-        case .top: return .top
+        case .top, .notch: return .top
         case .left: return .leading
         case .bottom: return .bottom
         case .right: return .trailing
@@ -55,7 +60,7 @@ enum PanelPosition: String, CaseIterable, Identifiable, Codable {
 
     var hiddenOffset: CGSize {
         switch self {
-        case .top: return CGSize(width: 0, height: -40)
+        case .top, .notch: return CGSize(width: 0, height: -40)
         case .left: return CGSize(width: -40, height: 0)
         case .bottom: return CGSize(width: 0, height: 40)
         case .right: return CGSize(width: 40, height: 0)
@@ -70,6 +75,7 @@ enum PanelPosition: String, CaseIterable, Identifiable, Codable {
         case .bottom: return "A wide shelf rises from the bottom edge."
         case .right: return "A tall column glides in from the right edge."
         case .center: return "A roomy grid appears in the middle of your screen."
+        case .notch: return "A compact black pill drops from the top, like the notch. Just your clips, no extras."
         }
     }
 }
@@ -117,6 +123,8 @@ enum CardSize: String, CaseIterable, Identifiable {
             case .comfortable: return CardMetrics(width: nil, height: 220, textLines: 9, thumbPixel: 600)
             case .large: return CardMetrics(width: nil, height: 270, textLines: 12, thumbPixel: 720)
             }
+        case .notch:
+            return CardMetrics(width: 150, height: 120, textLines: 5, thumbPixel: 320)
         }
     }
 }
@@ -129,7 +137,7 @@ struct CardMetrics: Equatable {
 }
 
 enum PanelGeometry {
-    static func size(position: PanelPosition, cardSize: CardSize, in frame: CGRect, margin: CGFloat) -> CGSize {
+    static func size(position: PanelPosition, cardSize: CardSize, in frame: CGRect, margin: CGFloat, topInset: CGFloat = 0) -> CGSize {
         let metrics = cardSize.metrics(for: position.layout)
         switch position.layout {
         case .strip:
@@ -138,6 +146,8 @@ enum PanelGeometry {
             return CGSize(width: min(cardSize.columnWidth, frame.width - margin * 2), height: frame.height - margin * 2)
         case .grid:
             return CGSize(width: min(frame.width - margin * 2, 900), height: min(frame.height - margin * 2, 600))
+        case .notch:
+            return CGSize(width: min(frame.width - 40, 780), height: topInset + 12 + metrics.height + 20)
         }
     }
 
@@ -153,6 +163,8 @@ enum PanelGeometry {
             return CGPoint(x: frame.maxX - size.width - margin, y: frame.midY - size.height / 2)
         case .center:
             return CGPoint(x: frame.midX - size.width / 2, y: frame.midY - size.height / 2)
+        case .notch:
+            return CGPoint(x: frame.midX - size.width / 2, y: frame.maxY - size.height)
         }
     }
 }

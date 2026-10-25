@@ -17,6 +17,14 @@ struct ClipboardPanelView: View {
     private var panelShape: RoundedRectangle { RoundedRectangle(cornerRadius: 28, style: .continuous) }
 
     var body: some View {
+        if layout == .notch {
+            NotchPanelView()
+        } else {
+            standardBody
+        }
+    }
+
+    private var standardBody: some View {
         ZStack {
             background
 
@@ -34,7 +42,7 @@ struct ClipboardPanelView: View {
             }
         }
         .clipShape(panelShape)
-        .overlay(panelShape.strokeBorder(LinearGradient(colors: [.primary.opacity(0.14), .primary.opacity(0.08)], startPoint: .top, endPoint: .bottom), lineWidth: 1))
+        .overlay(panelShape.strokeBorder(Color.primary.opacity(0.1), lineWidth: 1))
         .scaleEffect(vm.presented ? 1 : 0.95, anchor: position.anchor)
         .offset(vm.presented ? .zero : position.hiddenOffset)
         .opacity(vm.presented ? 1 : 0)
@@ -47,7 +55,7 @@ struct ClipboardPanelView: View {
 
     private var background: some View {
         ZStack {
-            Color(nsColor: .windowBackgroundColor)
+            PanelPalette.background
         }
     }
 
@@ -172,6 +180,7 @@ struct ClipboardPanelView: View {
             case .strip: stripContent
             case .column: columnContent
             case .grid: gridContent
+            case .notch: EmptyView()
             }
 
             if vm.filteredItems.isEmpty {
@@ -283,6 +292,8 @@ struct ClipboardPanelView: View {
             return [("←→", "Navigate"), ("↩", "Paste"), ("space", "Preview"), ("⌘P", "Pin"), ("⌘⌫", "Delete"), ("⇥", "Filter"), ("esc", "Close")]
         case .column:
             return [("↑↓", "Navigate"), ("↩", "Paste"), ("space", "Preview"), ("⌘⌫", "Delete"), ("esc", "Close")]
+        case .notch:
+            return []
         case .grid:
             return [("←↑↓→", "Navigate"), ("↩", "Paste"), ("space", "Preview"), ("⌘P", "Pin"), ("⌘⌫", "Delete"), ("⇥", "Filter"), ("esc", "Close")]
         }

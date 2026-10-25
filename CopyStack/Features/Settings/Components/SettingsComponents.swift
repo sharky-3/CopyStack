@@ -91,28 +91,31 @@ struct SettingsCard<Content: View>: View {
             if let title {
                 Text(title.uppercased())
                     .font(.system(size: 11, weight: .semibold, design: .rounded))
-                    .tracking(0.7)
+                    .tracking(0.8)
                     .foregroundStyle(.secondary)
-                    .padding(.leading, 8)
+                    .padding(.leading, 6)
             }
 
             VStack(spacing: 0) {
                 content
             }
-            .padding(.horizontal, 18)
-            .padding(.vertical, 6)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 4)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(RoundedRectangle(cornerRadius: 24, style: .continuous).fill(.primary.opacity(0.06)))
-            .overlay(RoundedRectangle(cornerRadius: 24, style: .continuous).strokeBorder(.primary.opacity(0.08), lineWidth: 1))
+            .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(Color.primary.opacity(0.045)))
+            .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(Color.primary.opacity(0.07), lineWidth: 1))
         }
     }
 }
 
 struct SettingsDivider: View {
+    var inset: CGFloat = 40
+
     var body: some View {
         Rectangle()
-            .fill(.primary.opacity(0.08))
+            .fill(Color.primary.opacity(0.07))
             .frame(height: 1)
+            .padding(.leading, inset)
     }
 }
 
@@ -134,7 +137,7 @@ struct SettingsRow<Trailing: View>: View {
     var body: some View {
         HStack(spacing: 12) {
             if let symbol {
-                IconSquare(symbol: symbol, color: color)
+                IconSquare(symbol: symbol, color: color, size: 28)
             }
 
             VStack(alignment: .leading, spacing: 2) {
@@ -148,11 +151,12 @@ struct SettingsRow<Trailing: View>: View {
                 }
             }
 
-            Spacer(minLength: 12)
+            Spacer(minLength: 16)
 
             trailing
         }
         .padding(.vertical, 11)
+        .frame(minHeight: 44)
     }
 }
 
@@ -167,21 +171,25 @@ struct SettingsPage<Content: View>: View {
 
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
-            VStack(alignment: .leading, spacing: 20) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(tab.title)
-                        .font(.system(size: 30, weight: .bold, design: .rounded))
-                    Text(tab.subtitle)
-                        .font(.system(size: 13))
-                        .foregroundStyle(.secondary)
+            VStack(alignment: .leading, spacing: 22) {
+                HStack(spacing: 14) {
+                    IconSquare(symbol: tab.symbol, color: tab.color, size: 44)
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(tab.title)
+                            .font(.system(size: 26, weight: .bold, design: .rounded))
+                        Text(tab.subtitle)
+                            .font(.system(size: 12.5))
+                            .foregroundStyle(.secondary)
+                    }
                 }
-                .padding(.bottom, 4)
+                .revealUp(delay: 0.02)
 
                 content
+                    .revealUp(delay: 0.08)
             }
-            .padding(.horizontal, 30)
-            .padding(.top, 46)
-            .padding(.bottom, 30)
+            .padding(.horizontal, 32)
+            .padding(.top, 52)
+            .padding(.bottom, 32)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
     }

@@ -85,7 +85,7 @@ struct ShortcutSettingsView: View {
                         }
                         .padding(.vertical, 8)
                         if index < panelKeys.count - 1 {
-                            SettingsDivider()
+                            SettingsDivider(inset: 0)
                         }
                     }
                 }

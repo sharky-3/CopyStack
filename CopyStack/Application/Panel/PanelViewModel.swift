@@ -11,6 +11,8 @@ final class PanelViewModel: ObservableObject {
     @Published var isPreviewing = false
     @Published private(set) var filteredItems: [ClipboardItem] = []
     @Published private(set) var openTick = 0
+    @Published var notchInset: CGFloat = 0
+    @Published var notchWidth: CGFloat = 190
 
     let categories = CategoryStyle.all
     let gridColumns = 3

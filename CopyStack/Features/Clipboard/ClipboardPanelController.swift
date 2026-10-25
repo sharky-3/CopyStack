@@ -4,6 +4,10 @@ import SwiftUI
 final class ClipboardPanel: NSPanel {
     override var canBecomeKey: Bool { true }
     override var canBecomeMain: Bool { false }
+
+    override func constrainFrameRect(_ frameRect: NSRect, to screen: NSScreen?) -> NSRect {
+        frameRect
+    }
 }
 
 final class ClipboardPanelController: NSObject {
@@ -60,7 +64,8 @@ final class ClipboardPanelController: NSObject {
         closeToken += 1
         let token = closeToken
         PanelViewModel.shared.presented = false
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.16) { [weak self] in
+        let delay = AppSettings.shared.panelPosition == .notch ? 0.45 : 0.16
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
             guard let self, self.closeToken == token else { return }
             panel.orderOut(nil)
         }
@@ -104,9 +109,20 @@ final class ClipboardPanelController: NSObject {
     private func layoutPanel() {
         guard let panel, let screen = targetScreen else { return }
         let settings = AppSettings.shared
-        let frame = screen.visibleFrame
+        let isNotch = settings.panelPosition == .notch
+        let frame = isNotch ? screen.frame : screen.visibleFrame
         let margin = CGFloat(settings.edgeMargin)
-        let size = PanelGeometry.size(position: settings.panelPosition, cardSize: settings.cardSize, in: frame, margin: margin)
+        let rawInset = isNotch ? screen.safeAreaInsets.top : 0
+        let inset: CGFloat = isNotch ? (rawInset > 0 ? rawInset : 28) : 0
+        var notchWidth: CGFloat = 190
+        if isNotch, let left = screen.auxiliaryTopLeftArea, let right = screen.auxiliaryTopRightArea {
+            notchWidth = screen.frame.width - left.width - right.width
+        }
+        PanelViewModel.shared.notchInset = inset
+        PanelViewModel.shared.notchWidth = notchWidth
+        panel.hasShadow = !isNotch
+        panel.level = isNotch ? NSWindow.Level(rawValue: NSWindow.Level.mainMenu.rawValue + 1) : .floating
+        let size = PanelGeometry.size(position: settings.panelPosition, cardSize: settings.cardSize, in: frame, margin: margin, topInset: inset)
         let origin = PanelGeometry.origin(position: settings.panelPosition, size: size, in: frame, margin: margin)
         panel.setFrame(NSRect(origin: origin, size: size), display: true)
     }
@@ -136,6 +152,7 @@ final class ClipboardPanelController: NSObject {
         case 126:
             switch layout {
             case .strip: return event
+            case .notch: return nil
             case .column: vm.moveSelection(by: -1)
             case .grid: vm.moveSelection(by: -vm.gridColumns)
             }
@@ -143,11 +160,13 @@ final class ClipboardPanelController: NSObject {
         case 125:
             switch layout {
             case .strip: return event
+            case .notch: return nil
             case .column: vm.moveSelection(by: 1)
             case .grid: vm.moveSelection(by: vm.gridColumns)
             }
             return nil
         case 48:
+            guard layout != .notch else { return nil }
             vm.cycleCategory(by: event.modifierFlags.contains(.shift) ? -1 : 1)
             return nil
         case 36, 76:
@@ -155,6 +174,7 @@ final class ClipboardPanelController: NSObject {
             vm.pasteSelected()
             return nil
         case 49:
+            guard layout != .notch else { return nil }
             guard vm.searchText.isEmpty else { return event }
             vm.togglePreview()
             return nil
@@ -178,7 +198,7 @@ final class ClipboardPanelController: NSObject {
                 ClipboardManager.shared.paste(vm.filteredItems[n - 1])
                 return nil
             }
-            return event
+            return layout == .notch ? nil : event
         }
     }
 

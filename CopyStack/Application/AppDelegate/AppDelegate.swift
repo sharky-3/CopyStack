@@ -13,7 +13,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
-        SettingsWindowController.shared.show()
+        if !flag {
+            SettingsWindowController.shared.show()
+        }
         return true
     }
 

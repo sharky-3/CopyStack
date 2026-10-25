@@ -6,7 +6,6 @@ final class StatusBarController: NSObject {
 
     private var statusItem: NSStatusItem!
     private var bag = Set<AnyCancellable>()
-    private var pauseMenuItem: NSMenuItem?
 
     func setup() {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
@@ -23,13 +22,6 @@ final class StatusBarController: NSObject {
             .removeDuplicates()
             .receive(on: DispatchQueue.main)
             .sink { [weak self] shortcut in self?.buildMenu(shortcut: shortcut) }
-            .store(in: &bag)
-
-        ClipboardManager.shared.$isMonitoring
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] monitoring in
-                self?.pauseMenuItem?.title = monitoring ? "Pause Monitoring" : "Resume Monitoring"
-            }
             .store(in: &bag)
 
         AppSettings.shared.$showMenuBarIcon
@@ -87,30 +79,9 @@ final class StatusBarController: NSObject {
 
         menu.addItem(.separator())
 
-        let pauseItem = NSMenuItem(title: ClipboardManager.shared.isMonitoring ? "Pause Monitoring" : "Resume Monitoring", action: #selector(togglePause), keyEquivalent: "")
-        pauseItem.target = self
-        menu.addItem(pauseItem)
-        pauseMenuItem = pauseItem
-
-        let clearItem = NSMenuItem(title: "Clear Unpinned History", action: #selector(clearHistory), keyEquivalent: "")
-        clearItem.target = self
-        menu.addItem(clearItem)
-
-        menu.addItem(.separator())
-
         let settingsItem = NSMenuItem(title: "Settings…", action: #selector(openSettings), keyEquivalent: ",")
         settingsItem.target = self
         menu.addItem(settingsItem)
-
-        let replayItem = NSMenuItem(title: "Replay Onboarding…", action: #selector(replayOnboarding), keyEquivalent: "")
-        replayItem.target = self
-        menu.addItem(replayItem)
-
-        let updateItem = NSMenuItem(title: "Check for Updates…", action: #selector(checkForUpdates), keyEquivalent: "")
-        updateItem.target = self
-        menu.addItem(updateItem)
-
-        menu.addItem(.separator())
 
         let quitItem = NSMenuItem(title: "Quit CopyStack", action: #selector(quit), keyEquivalent: "q")
         quitItem.target = self
@@ -123,27 +94,8 @@ final class StatusBarController: NSObject {
         ClipboardPanelController.shared.show()
     }
 
-    @objc private func togglePause() {
-        if ClipboardManager.shared.isMonitoring {
-            ClipboardManager.shared.stopMonitoring()
-        } else {
-            ClipboardManager.shared.startMonitoring()
-        }
-    }
-
-    @objc private func clearHistory() {
-        ClipboardManager.shared.clearAll(keepPinned: true)
-    }
-
     @objc private func openSettings() {
         SettingsWindowController.shared.show()
-    }
-
-    @objc private func replayOnboarding() {
-        OnboardingWindowController.shared.show()
-    }
-
-    @objc private func checkForUpdates() {
     }
 
     @objc private func quit() {

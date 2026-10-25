@@ -9,6 +9,7 @@ final class ThumbnailLoader {
     private let iconCache = NSCache<NSString, NSImage>()
     private let appIconCache = NSCache<NSString, NSImage>()
     private var appNames: [String: String] = [:]
+    private var failed = Set<String>()
 
     private init() {
         cache.totalCostLimit = 96 * 1024 * 1024
@@ -38,6 +39,7 @@ final class ThumbnailLoader {
     func load(_ item: ClipboardItem, maxPixel: CGFloat) async -> NSImage? {
         let cacheKey = key(for: item, maxPixel: maxPixel)
         if let hit = cache.object(forKey: cacheKey) { return hit }
+        if failed.contains(cacheKey as String) { return nil }
         guard let url = sourceURL(for: item) else { return nil }
 
         let thumb: NSImage? = await Task.detached(priority: .userInitiated) {
@@ -46,6 +48,8 @@ final class ThumbnailLoader {
 
         if let thumb {
             cache.setObject(thumb, forKey: cacheKey, cost: Int(thumb.size.width * thumb.size.height * 4))
+        } else {
+            failed.insert(cacheKey as String)
         }
         return thumb
     }
@@ -95,6 +99,7 @@ struct FillThumbnail: View {
     var fit = false
 
     @State private var image: NSImage?
+    @State private var loadFailed = false
 
     private var displayed: NSImage? {
         image ?? ThumbnailLoader.shared.cachedThumbnail(for: item, maxPixel: maxPixel)
@@ -109,7 +114,12 @@ struct FillThumbnail: View {
                         .interpolation(.medium)
                         .aspectRatio(contentMode: fit ? .fit : .fill)
                         .transition(.opacity)
-                } else {
+                } else if loadFailed, let url = item.fileURLs?.first {
+                    Image(nsImage: ThumbnailLoader.shared.fileIcon(for: url))
+                        .resizable()
+                        .scaledToFit()
+                        .padding(24)
+                } else if !loadFailed {
                     ProgressView()
                         .controlSize(.small)
                         .opacity(0.5)
@@ -119,7 +129,10 @@ struct FillThumbnail: View {
             .task(id: item.id) {
                 if ThumbnailLoader.shared.cachedThumbnail(for: item, maxPixel: maxPixel) != nil { return }
                 let loaded = await ThumbnailLoader.shared.load(item, maxPixel: maxPixel)
-                withAnimation(.easeOut(duration: 0.18)) { image = loaded }
+                withAnimation(.easeOut(duration: 0.18)) {
+                    image = loaded
+                    loadFailed = loaded == nil
+                }
             }
     }
 }

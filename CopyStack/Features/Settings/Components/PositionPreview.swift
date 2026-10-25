@@ -19,6 +19,8 @@ struct PositionPreview: View {
         case .right:
             let w = width * 0.27
             return CGRect(x: width - margin - w, y: top + margin, width: w, height: usable - margin * 2)
+        case .notch:
+            return CGRect(x: width * 0.19, y: 0, width: width * 0.62, height: top + usable * 0.3)
         case .center:
             let w = width * 0.64
             let h = usable * 0.74
@@ -61,12 +63,11 @@ struct PositionPreview: View {
     }
 
     private func panel(rect: CGRect) -> some View {
-        RoundedRectangle(cornerRadius: 12, style: .continuous)
-            .fill(Color.white.opacity(0.55))
-            .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(.white.opacity(0.45), lineWidth: 1))
+        UnevenRoundedRectangle(topLeadingRadius: position == .notch ? 0 : 12, bottomLeadingRadius: 12, bottomTrailingRadius: 12, topTrailingRadius: position == .notch ? 0 : 12, style: .continuous)
+            .fill(position == .notch ? Color.black : Color.white.opacity(0.55))
             .overlay {
                 ZStack {
-                    MiniCards(layout: position.layout)
+                    MiniCards(layout: position.layout, dark: position == .notch)
                         .id(position.layout)
                         .transition(.opacity)
                 }
@@ -79,6 +80,7 @@ struct PositionPreview: View {
 
 private struct MiniCards: View {
     let layout: PanelLayout
+    var dark = false
 
     var body: some View {
         switch layout {
@@ -89,6 +91,15 @@ private struct MiniCards: View {
                 }
             }
             .padding(8)
+        case .notch:
+            HStack(spacing: 4) {
+                ForEach(0..<6, id: \.self) { i in
+                    card(selected: i == 2)
+                }
+            }
+            .padding(.horizontal, 8)
+            .padding(.top, 14)
+            .padding(.bottom, 7)
         case .column:
             VStack(spacing: 5) {
                 ForEach(0..<4, id: \.self) { i in
@@ -112,7 +123,7 @@ private struct MiniCards: View {
 
     private func card(selected: Bool) -> some View {
         RoundedRectangle(cornerRadius: 5, style: .continuous)
-            .fill(selected ? Color.accentColor.opacity(0.95) : Color.white.opacity(0.4))
+            .fill(selected ? Color.accentColor.opacity(0.95) : Color.white.opacity(dark ? 0.22 : 0.4))
             .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }

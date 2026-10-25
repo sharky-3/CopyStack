@@ -65,11 +65,7 @@ struct ClipboardCardView: View, Equatable {
     }
 
     private var background: some View {
-        shape.fill(
-            LinearGradient(
-                colors: [.primary.opacity(isSelected ? 0.09 : (hovered ? 0.08 : 0.055)), .primary.opacity(isSelected ? 0.09 : (hovered ? 0.08 : 0.055))], startPoint: .top, endPoint: .bottom
-            )
-        )
+        shape.fill(Color.primary.opacity(isSelected ? 0.09 : (hovered ? 0.075 : 0.055)))
     }
 
     private var border: some View {

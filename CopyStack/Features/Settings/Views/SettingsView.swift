@@ -2,12 +2,22 @@ import SwiftUI
 
 struct SettingsView: View {
     @State private var tab: SettingsTab = .general
+    @State private var hovered: SettingsTab?
     @Namespace private var space
+
+    private var version: String {
+        let short = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
+        return "Version \(short)"
+    }
 
     var body: some View {
         HStack(spacing: 0) {
             sidebar
-                .frame(width: 236)
+                .frame(width: 232)
+
+            Rectangle()
+                .fill(Color.primary.opacity(0.08))
+                .frame(width: 1)
 
             ZStack {
                 switch tab {
@@ -31,50 +41,67 @@ struct SettingsView: View {
     }
 
     private var sidebar: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: 2) {
             HStack(spacing: 10) {
-                Image("icon")
+                Image(nsImage: AppIcon.image)
                     .resizable()
-                    .frame(width: 38, height: 38)
+                    .frame(width: 34, height: 34)
                 VStack(alignment: .leading, spacing: 0) {
                     Text("CopyStack")
-                        .font(.system(size: 15, weight: .bold, design: .rounded))
+                        .font(.system(size: 14.5, weight: .bold, design: .rounded))
                     Text("Settings")
                         .font(.system(size: 11.5))
                         .foregroundStyle(.secondary)
                 }
             }
-            .padding(.horizontal, 12)
-            .padding(.top, 50)
-            .padding(.bottom, 18)
+            .padding(.horizontal, 10)
+            .padding(.top, 48)
+            .padding(.bottom, 20)
 
             ForEach(SettingsTab.allCases) { item in
                 Button {
                     tab = item
                 } label: {
-                    HStack(spacing: 11) {
-                        IconSquare(symbol: item.symbol, color: item.color, size: 28)
+                    HStack(spacing: 10) {
+                        IconSquare(symbol: item.symbol, color: item.color, size: 24)
                         Text(item.title)
-                            .font(.system(size: 14, weight: .medium))
+                            .font(.system(size: 13.5, weight: tab == item ? .semibold : .medium))
                         Spacer()
                     }
                     .padding(.horizontal, 10)
-                    .padding(.vertical, 7)
+                    .frame(height: 36)
                     .background {
                         if tab == item {
-                            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                .fill(.primary.opacity(0.1))
+                            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                .fill(Color.primary.opacity(0.09))
                                 .matchedGeometryEffect(id: "sidebarSelection", in: space)
+                        } else if hovered == item {
+                            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                .fill(Color.primary.opacity(0.045))
                         }
                     }
-                    .contentShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    .contentShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                 }
                 .buttonStyle(.plain)
+                .onHover { isHovering in
+                    if isHovering {
+                        hovered = item
+                    } else if hovered == item {
+                        hovered = nil
+                    }
+                }
             }
 
             Spacer()
+
+            Text(version)
+                .font(.system(size: 11))
+                .foregroundStyle(.tertiary)
+                .padding(.horizontal, 12)
+                .padding(.bottom, 16)
         }
         .padding(.horizontal, 12)
-        .background(Color.primary.opacity(0.04))
+        .frame(maxHeight: .infinity)
+        .background(Color.primary.opacity(0.03))
     }
 }
