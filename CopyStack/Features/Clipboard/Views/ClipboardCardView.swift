@@ -156,7 +156,42 @@ struct ClipboardCardView: View, Equatable {
             }
     }
 
+    private var isWide: Bool { metrics.width == nil && metrics.height < 200 }
+
+    @ViewBuilder
     private var linkContent: some View {
+        if isWide {
+            linkRow
+        } else {
+            linkTall
+        }
+    }
+
+    private var linkRow: some View {
+        HStack(spacing: 12) {
+            ZStack {
+                Circle().fill(.primary.opacity(0.08))
+                Image(systemName: "globe")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(.primary)
+            }
+            .frame(width: 38, height: 38)
+
+            VStack(alignment: .leading, spacing: 3) {
+                Text(item.linkDomain ?? item.preview)
+                    .font(.system(size: 13.5, weight: .semibold, design: .rounded))
+                    .foregroundStyle(.primary)
+                    .lineLimit(1)
+                Text(item.preview)
+                    .font(.system(size: 11, weight: .regular, design: .rounded))
+                    .foregroundStyle(.primary.opacity(0.55))
+                    .lineLimit(2)
+                    .multilineTextAlignment(.leading)
+            }
+        }
+    }
+
+    private var linkTall: some View {
         VStack(alignment: .leading, spacing: 10) {
             ZStack {
                 Circle().fill(.primary.opacity(0.08))
@@ -181,7 +216,23 @@ struct ClipboardCardView: View, Equatable {
 
     @ViewBuilder
     private var colorContent: some View {
-        if let text = item.text, let color = NSColor(hexString: text) {
+        if isWide, let text = item.text, let color = NSColor(hexString: text) {
+            HStack(spacing: 12) {
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(Color(nsColor: color))
+                    .frame(width: 60, height: 60)
+                    .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(.primary.opacity(0.25), lineWidth: 1))
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(text.uppercased())
+                        .font(.system(size: 13, weight: .semibold, design: .monospaced))
+                        .foregroundStyle(.primary)
+                    Text(color.rgbLabel)
+                        .font(.system(size: 10.5, weight: .regular, design: .monospaced))
+                        .foregroundStyle(.primary.opacity(0.5))
+                        .lineLimit(1)
+                }
+            }
+        } else if let text = item.text, let color = NSColor(hexString: text) {
             VStack(alignment: .leading, spacing: 8) {
                 RoundedRectangle(cornerRadius: 14, style: .continuous)
                     .fill(Color(nsColor: color))
@@ -231,6 +282,24 @@ struct ClipboardCardView: View, Equatable {
                             .background(.black.opacity(0.45), in: Capsule())
                             .padding(8)
                     }
+            } else if isWide {
+                HStack(spacing: 12) {
+                    Image(nsImage: ThumbnailLoader.shared.fileIcon(for: url))
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 40, height: 40)
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(item.fileTitle)
+                            .font(.system(size: 13, weight: .semibold, design: .rounded))
+                            .foregroundStyle(.primary)
+                            .lineLimit(1)
+                        Text(url.deletingLastPathComponent().path)
+                            .font(.system(size: 10.5, weight: .regular, design: .rounded))
+                            .foregroundStyle(.primary.opacity(0.45))
+                            .lineLimit(1)
+                            .truncationMode(.middle)
+                    }
+                }
             } else {
                 VStack(alignment: .leading, spacing: 10) {
                     Image(nsImage: ThumbnailLoader.shared.fileIcon(for: url))

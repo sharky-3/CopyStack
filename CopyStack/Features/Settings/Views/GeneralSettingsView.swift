@@ -48,6 +48,12 @@ struct GeneralSettingsView: View {
             }
 
             SettingsCard("Menu Bar") {
+                SettingsRow(symbol: "menubar.rectangle", color: .blue, title: "Show menu bar icon", subtitle: "Hide it for a fully invisible app. Open CopyStack with your shortcut, and launch the app again from Spotlight to reach Settings.") {
+                    Toggle("", isOn: $settings.showMenuBarIcon)
+                        .toggleStyle(.switch)
+                        .labelsHidden()
+                }
+                SettingsDivider()
                 SettingsRow(symbol: "number.square.fill", color: .purple, title: "Show clip count", subtitle: "Display how many clips you have inside the menu bar icon.") {
                     Toggle("", isOn: $settings.showCountInMenuBar)
                         .toggleStyle(.switch)

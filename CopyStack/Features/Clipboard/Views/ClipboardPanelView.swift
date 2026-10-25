@@ -110,24 +110,26 @@ struct ClipboardPanelView: View {
 
     private var filterBar: some View {
         HStack(spacing: 8) {
-            HStack(spacing: 8) {
-                ForEach(vm.categories, id: \.self) { category in
-                    chip(category)
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(vm.categories, id: \.self) { category in
+                        chip(category)
+                    }
                 }
             }
-
-            Spacer(minLength: 0)
 
             if !manager.isMonitoring {
                 HStack(spacing: 5) {
                     Image(systemName: "pause.fill")
                         .font(.system(size: 9, weight: .bold))
-                    Text("Paused")
-                        .font(.system(size: 11, weight: .semibold, design: .rounded))
+                    if layout != .column {
+                        Text("Paused")
+                            .font(.system(size: 11, weight: .semibold, design: .rounded))
+                    }
                 }
                 .foregroundStyle(Color.orange)
                 .padding(.horizontal, 10)
-                .frame(height: 26)
+                .frame(height: 32)
                 .background(Capsule().fill(Color.orange.opacity(0.16)))
             }
         }
@@ -137,6 +139,7 @@ struct ClipboardPanelView: View {
 
     private func chip(_ category: String) -> some View {
         let isActive = activeCategory == category
+        let showsTitle = isActive || layout != .column
 
         return Button {
             withAnimation(.spring(response: 0.34, dampingFraction: 0.8)) {
@@ -147,11 +150,14 @@ struct ClipboardPanelView: View {
             HStack(spacing: 6) {
                 Image(systemName: CategoryStyle.icon(category))
                     .font(.system(size: 11, weight: .semibold))
-                Text(category)
-                    .font(.system(size: 12, weight: .semibold, design: .rounded))
+                if showsTitle {
+                    Text(category)
+                        .font(.system(size: 12, weight: .semibold, design: .rounded))
+                        .lineLimit(1)
+                }
             }
             .foregroundStyle(isActive ? Color(nsColor: .windowBackgroundColor) : Color.secondary)
-            .padding(.horizontal, 13)
+            .padding(.horizontal, showsTitle ? 13 : 11)
             .frame(height: 32)
             .background(Capsule().fill(isActive ? Color.primary : Color.primary.opacity(0.07)))
             .contentShape(Capsule())
@@ -282,13 +288,28 @@ struct ClipboardPanelView: View {
         }
     }
 
+    private func hintView(_ hint: (String, String)) -> some View {
+        HStack(spacing: 5) {
+            Keycap(text: hint.0)
+            Text(hint.1)
+                .lineLimit(1)
+        }
+    }
+
+    @ViewBuilder
     private var footer: some View {
-        HStack(spacing: layout == .column ? 10 : 16) {
-            ForEach(hints, id: \.0) { hint in
-                HStack(spacing: 5) {
-                    Keycap(text: hint.0)
-                    Text(hint.1)
-                        .lineLimit(1)
+        Group {
+            if layout == .column {
+                LazyVGrid(columns: [GridItem(.flexible(), alignment: .leading), GridItem(.flexible(), alignment: .leading)], alignment: .leading, spacing: 8) {
+                    ForEach(hints, id: \.0) { hint in
+                        hintView(hint)
+                    }
+                }
+            } else {
+                HStack(spacing: 16) {
+                    ForEach(hints, id: \.0) { hint in
+                        hintView(hint)
+                    }
                 }
             }
         }

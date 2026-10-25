@@ -107,9 +107,9 @@ enum CardSize: String, CaseIterable, Identifiable {
             }
         case .column:
             switch self {
-            case .compact: return CardMetrics(width: nil, height: 130, textLines: 3, thumbPixel: 640)
-            case .comfortable: return CardMetrics(width: nil, height: 165, textLines: 5, thumbPixel: 760)
-            case .large: return CardMetrics(width: nil, height: 210, textLines: 7, thumbPixel: 900)
+            case .compact: return CardMetrics(width: nil, height: 150, textLines: 4, thumbPixel: 640)
+            case .comfortable: return CardMetrics(width: nil, height: 185, textLines: 6, thumbPixel: 760)
+            case .large: return CardMetrics(width: nil, height: 230, textLines: 9, thumbPixel: 900)
             }
         case .grid:
             switch self {
