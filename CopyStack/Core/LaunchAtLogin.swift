@@ -1,6 +1,10 @@
 import ServiceManagement
 
 enum LaunchAtLogin {
+    static var isEnabled: Bool {
+        SMAppService.mainApp.status == .enabled
+    }
+
     static func set(enabled: Bool) {
         do {
             if enabled {

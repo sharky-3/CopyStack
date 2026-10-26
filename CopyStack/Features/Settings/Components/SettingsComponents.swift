@@ -1,0 +1,196 @@
+import SwiftUI
+
+enum SettingsTab: String, CaseIterable, Identifiable {
+    case general
+    case library
+    case panel
+    case shortcut
+    case history
+    case privacy
+    case about
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .general: return "General"
+        case .library: return "Library"
+        case .panel: return "Panel"
+        case .shortcut: return "Shortcut"
+        case .history: return "History"
+        case .privacy: return "Privacy"
+        case .about: return "About"
+        }
+    }
+
+    var subtitle: String {
+        switch self {
+        case .general: return "Startup, pasting and menu bar behavior."
+        case .library: return "Every clip you have copied, all in one place."
+        case .panel: return "Choose where the stack appears and how it looks."
+        case .shortcut: return "Open CopyStack with a key combo or a mouse button."
+        case .history: return "How much to keep, and for how long."
+        case .privacy: return "Keep sensitive copies out of your history."
+        case .about: return "Version info and resets."
+        }
+    }
+
+    var symbol: String {
+        switch self {
+        case .general: return "gearshape.fill"
+        case .library: return "square.grid.2x2.fill"
+        case .panel: return "macwindow"
+        case .shortcut: return "keyboard.fill"
+        case .history: return "clock.arrow.circlepath"
+        case .privacy: return "hand.raised.fill"
+        case .about: return "info.circle.fill"
+        }
+    }
+
+    var color: Color {
+        switch self {
+        case .general: return Color(red: 0.56, green: 0.58, blue: 0.64)
+        case .library: return Color(red: 0.0, green: 0.7, blue: 0.85)
+        case .panel: return Color(red: 0.25, green: 0.52, blue: 1.0)
+        case .shortcut: return Color(red: 1.0, green: 0.58, blue: 0.2)
+        case .history: return Color(red: 0.22, green: 0.78, blue: 0.45)
+        case .privacy: return Color(red: 0.62, green: 0.38, blue: 0.95)
+        case .about: return Color(red: 0.95, green: 0.35, blue: 0.5)
+        }
+    }
+}
+
+struct IconSquare: View {
+    let symbol: String
+    let color: Color
+    var size: CGFloat = 30
+
+    var body: some View {
+        RoundedRectangle(cornerRadius: size * 0.3, style: .continuous)
+            .fill(color)
+            .frame(width: size, height: size)
+            .overlay(
+                Image(systemName: symbol)
+                    .font(.system(size: size * 0.5, weight: .semibold))
+                    .foregroundStyle(.white)
+            )
+    }
+}
+
+struct SettingsCard<Content: View>: View {
+    let title: String?
+    let content: Content
+
+    init(_ title: String? = nil, @ViewBuilder content: () -> Content) {
+        self.title = title
+        self.content = content()
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            if let title {
+                Text(title.uppercased())
+                    .font(.system(size: 11, weight: .semibold, design: .rounded))
+                    .tracking(0.8)
+                    .foregroundStyle(.secondary)
+                    .padding(.leading, 6)
+            }
+
+            VStack(spacing: 0) {
+                content
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 4)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(Color.primary.opacity(0.045)))
+            .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(Color.primary.opacity(0.07), lineWidth: 1))
+        }
+    }
+}
+
+struct SettingsDivider: View {
+    var inset: CGFloat = 40
+
+    var body: some View {
+        Rectangle()
+            .fill(Color.primary.opacity(0.07))
+            .frame(height: 1)
+            .padding(.leading, inset)
+    }
+}
+
+struct SettingsRow<Trailing: View>: View {
+    let symbol: String?
+    let color: Color
+    let title: String
+    let subtitle: String?
+    let trailing: Trailing
+
+    init(symbol: String? = nil, color: Color = .blue, title: String, subtitle: String? = nil, @ViewBuilder trailing: () -> Trailing) {
+        self.symbol = symbol
+        self.color = color
+        self.title = title
+        self.subtitle = subtitle
+        self.trailing = trailing()
+    }
+
+    var body: some View {
+        HStack(spacing: 12) {
+            if let symbol {
+                IconSquare(symbol: symbol, color: color, size: 28)
+            }
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.system(size: 13.5, weight: .medium))
+                if let subtitle {
+                    Text(subtitle)
+                        .font(.system(size: 11.5))
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+
+            Spacer(minLength: 16)
+
+            trailing
+        }
+        .padding(.vertical, 11)
+        .frame(minHeight: 44)
+    }
+}
+
+struct SettingsPage<Content: View>: View {
+    let tab: SettingsTab
+    let content: Content
+
+    init(_ tab: SettingsTab, @ViewBuilder content: () -> Content) {
+        self.tab = tab
+        self.content = content()
+    }
+
+    var body: some View {
+        ScrollView(.vertical, showsIndicators: false) {
+            VStack(alignment: .leading, spacing: 22) {
+                HStack(spacing: 14) {
+                    IconSquare(symbol: tab.symbol, color: tab.color, size: 44)
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(tab.title)
+                            .font(.system(size: 26, weight: .bold, design: .rounded))
+                        Text(tab.subtitle)
+                            .font(.system(size: 12.5))
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .revealUp(delay: 0.02)
+
+                content
+                    .revealUp(delay: 0.08)
+            }
+            .padding(.horizontal, 32)
+            .padding(.top, 52)
+            .padding(.bottom, 32)
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+}
